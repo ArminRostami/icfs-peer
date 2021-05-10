@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	httpa "icfs-client/adapters/http"
 	"icfs-client/adapters/ipfs"
 	"icfs-client/domain"
 	"io"
@@ -13,50 +12,51 @@ import (
 )
 
 const base = "http://127.0.0.1:8000"
-const baseUI = "http://127.0.0.1:4200"
 
-func run() error {
+func getConnInfo() (*domain.UserConfig, error) {
 	cl := &http.Client{}
 
 	req, err := http.NewRequest("GET", base+"/ipfs", nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to create request")
+		return nil, errors.Wrap(err, "failed to create request")
 	}
 
 	resp, err := cl.Do(req)
 	if err != nil {
-		return errors.Wrap(err, "failed to send request")
+		return nil, errors.Wrap(err, "failed to send request")
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	if err != nil {
-		return errors.Wrap(err, "failed to read response body")
+		return nil, errors.Wrap(err, "failed to read response body")
 	}
 
 	var connInfo domain.UserConfig
 
 	err = json.Unmarshal(body, &connInfo)
 	if err != nil {
-		return errors.Wrap(err, "failed to uwrap body into map")
+		return nil, errors.Wrap(err, "failed to uwrap body into map")
 	}
 
-	log.Println(connInfo.Bootstrap, connInfo.SwarmKey)
+	log.Println(connInfo.Bootstrap)
 
-	p, err := httpa.NewProxy(baseUI)
+	return &connInfo, nil
+}
+
+func run() error {
+	connInfo, err := getConnInfo()
 	if err != nil {
-		return errors.Wrap(err, "failed to create proxy")
+		return errors.Wrap(err, "failed to get connInfo")
 	}
 
-	cancel, service, err := ipfs.NewService(&connInfo)
+	cancel, service, err := ipfs.NewService(connInfo)
 	defer cancel()
 	if err != nil {
 		return errors.Wrap(err, "failed to create ipfs service")
 	}
 
-	h := httpa.Handler{IS: service, RProxy: p}
-
-	return h.Serve()
+	return service.Start()
 }
 
 func main() {
