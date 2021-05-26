@@ -2,7 +2,7 @@ package ipfs
 
 import (
 	"context"
-	"icfs-client/domain"
+	"icfs-peer/domain"
 	"io"
 	"log"
 	"os"
@@ -156,7 +156,10 @@ func (s *IpfsService) initRepo() error {
 }
 
 func setupCORS(cfg *config.Config) {
-	cfg.API.HTTPHeaders["Access-Control-Allow-Origin"] = []string{"http://localhost:4200"}
+	cfg.API.HTTPHeaders["Access-Control-Allow-Origin"] = []string{
+		"http://localhost:4200",
+		"http://127.0.0.1:4200",
+	}
 	cfg.API.HTTPHeaders["Access-Control-Allow-Methods"] = []string{"POST", "PUT", "GET"}
 }
 

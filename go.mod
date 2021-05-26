@@ -1,4 +1,4 @@
-module icfs-client
+module icfs-peer
 
 go 1.16
 
