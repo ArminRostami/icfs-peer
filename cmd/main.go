@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"icfs-peer/adapters/ipfs"
 	"icfs-peer/domain"
-	"icfs-peer/env"
 	"io"
 	"log"
 	"net/http"
@@ -13,13 +12,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-const localhost = "127.0.0.1"
-const bootPort = 8000
+const (
+	bootstrap = "bootstrap"
+	bootPort  = 8000
+)
 
 func getConnInfo() (*domain.UserConfig, error) {
 	cl := &http.Client{}
 
-	req, err := http.NewRequest("GET", getInfoURL(localhost, bootPort)+"/ipfs", nil)
+	req, err := http.NewRequest("GET", getInfoURL(bootstrap, bootPort), nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request")
 	}
@@ -48,10 +49,7 @@ func getConnInfo() (*domain.UserConfig, error) {
 }
 
 func getInfoURL(host string, port int) string {
-	if env.DockerEnabled() {
-		host = env.Bootstrap
-	}
-	return fmt.Sprintf("http://%s:%d", host, port)
+	return fmt.Sprintf("http://%s:%d/ipfs", host, port)
 }
 
 func run() error {

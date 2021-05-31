@@ -54,7 +54,12 @@ func (s *IpfsService) Start() error {
 		return errors.Wrap(err, "failed to spawn default node")
 	}
 
-	return corehttp.ListenAndServe(s.node, "/ip4/127.0.0.1/tcp/5001", corehttp.CommandsOption(s.cmdCtx()))
+	opts := []corehttp.ServeOption{
+		corehttp.GatewayOption(false, "/ipfs", "/ipns"),
+		corehttp.CommandsOption(s.cmdCtx()),
+	}
+
+	return corehttp.ListenAndServe(s.node, "/ip4/127.0.0.1/tcp/5001", opts...)
 }
 
 func (s *IpfsService) createNode() error {
@@ -157,10 +162,9 @@ func (s *IpfsService) initRepo() error {
 
 func setupCORS(cfg *config.Config) {
 	cfg.API.HTTPHeaders["Access-Control-Allow-Origin"] = []string{
-		"http://localhost:4200",
-		"http://127.0.0.1:4200",
+		"*",
 	}
-	cfg.API.HTTPHeaders["Access-Control-Allow-Methods"] = []string{"POST", "PUT", "GET"}
+	cfg.API.HTTPHeaders["Access-Control-Allow-Methods"] = []string{"POST", "PUT", "GET", "DELETE"}
 }
 
 func setBootstrap(cfg *config.Config, bootStr string) error {
