@@ -43,15 +43,17 @@ func NewService(conf *domain.UserConfig) (context.CancelFunc, *IpfsService, erro
 	return cancel, &IpfsService{ctx: ctx, repoPath: pr, userConf: conf}, nil
 }
 
-func (s *IpfsService) Start() error {
+func (s *IpfsService) Start(ec chan<- error) {
 	err := s.setupRepo()
 	if err != nil {
-		return errors.Wrap(err, "failed to start ipfs service")
+		ec <- errors.Wrap(err, "failed to start ipfs service")
+		return
 	}
 
 	err = s.createNode()
 	if err != nil {
-		return errors.Wrap(err, "failed to spawn default node")
+		ec <- errors.Wrap(err, "failed to spawn default node")
+		return
 	}
 
 	opts := []corehttp.ServeOption{
@@ -59,7 +61,7 @@ func (s *IpfsService) Start() error {
 		corehttp.CommandsOption(s.cmdCtx()),
 	}
 
-	return corehttp.ListenAndServe(s.node, "/ip4/127.0.0.1/tcp/5001", opts...)
+	ec <- corehttp.ListenAndServe(s.node, "/ip4/127.0.0.1/tcp/5001", opts...)
 }
 
 func (s *IpfsService) createNode() error {

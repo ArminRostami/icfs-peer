@@ -7,6 +7,7 @@ require (
 	github.com/ipfs/go-ipfs v0.8.0
 	github.com/ipfs/go-ipfs-config v0.12.0
 	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/pkg/browser v0.0.0-20210605161147-93ea1f481b79
 	github.com/pkg/errors v0.9.1
 	golang.org/x/crypto v0.0.0-20210503195802-e9a32991a82e // indirect
 	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6 // indirect

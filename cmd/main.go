@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/pkg/browser"
 	"github.com/pkg/errors"
 )
 
@@ -64,7 +65,15 @@ func run() error {
 		return errors.Wrap(err, "failed to create ipfs service")
 	}
 
-	return service.Start()
+	ec := make(chan error)
+	go service.Start(ec)
+
+	err = browser.OpenURL(fmt.Sprintf("http://%s:%d", bootstrap, bootPort))
+	if err != nil {
+		return errors.Wrap(err, "failed to open browser")
+	}
+
+	return <-ec
 }
 
 func main() {
